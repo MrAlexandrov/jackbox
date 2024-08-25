@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 project(jackbox CXX)
 
+set(USERVER_FEATURE_PATCH_LIBPQ OFF)
+
 # Adding userver dependency
 find_package(userver COMPONENTS core grpc postgresql QUIET)
 if(NOT userver_FOUND)  # Fallback to subdirectory usage

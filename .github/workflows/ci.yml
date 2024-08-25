@@ -1,15 +1,17 @@
 name: CI
 
 'on':
-    schedule:
-      - cron: '30 5 * * 1'  # Every Monday at 5:30
-    pull_request:
+    # schedule:
+    #   - cron: '30 5 * * 1'  # Every Monday at 5:30
+    # pull_request:
     push:
-        branches:
-          - develop
 
 env:
     UBSAN_OPTIONS: print_stacktrace=1
+    PG_HOST: ${{ secrets.PG_HOST }}
+    POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+    POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
 jobs:
     posix:
@@ -17,18 +19,26 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                  - os: ubuntu-20.04
+                  - os: ubuntu-22.04
                     make: test-debug
-                    info: g++-9 + test-debug
+                    info: clang++-17 + test-debug
 
-                  - os: ubuntu-20.04
+                  - os: ubuntu-22.04
                     make: test-release
-                    info: g++-9 + test-release
+                    info: clang++-17 + test-release
+                    if: github.ref == 'refs/heads/main'
 
         name: '${{matrix.os}}: ${{matrix.info}}'
-        runs-on: ${{matrix.os}}
+        runs-on: self-hosted
 
         steps:
+          - name: Создание .env файла
+            run: |
+              echo "PG_HOST=${{ secrets.PG_HOST }}" >> .env
+              echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+              echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+              echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
+
           - uses: actions/checkout@v2
             with:
                 submodules: true
@@ -45,13 +55,13 @@ jobs:
           - name: Install packages
             run: |
                 (cd third_party && git clone -b develop --single-branch --depth 1 https://github.com/userver-framework/userver.git)
-                sudo apt update
-                sudo apt install --allow-downgrades -y postgresql $(cat third_party/userver/scripts/docs/en/deps/${{matrix.os}}.md | tr '\n' ' ')
+                sudo apt-get update
+                sudo apt-get install --allow-downgrades -y postgresql $(cat third_party/userver/scripts/docs/en/deps/${{matrix.os}}.md | tr '\n' ' ')
                 python3 -m pip install -r requirements.txt
 
           - name: Setup ccache
             run: |
-                ccache -M 2.0GB
+                ccache -M 4.0GB
                 ccache -s
 
           - name: Run ${{matrix.make}}
