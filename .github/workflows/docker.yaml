@@ -2,10 +2,10 @@
 name: Docker build
 
 'on':
-    schedule:
-      - cron: '30 5 * * 1'  # Every Monday at 5:30
-    pull_request:
+    # schedule:
+    #   - cron: '30 5 * * 1'  # Every Monday at 5:30
     push:
+      branches: main
 
 jobs:
     tests:
@@ -33,12 +33,15 @@ jobs:
             run: docker-compose run --rm jackbox-container bash -c 'ccache -M 4.0GB && ccache -s'
 
           - name: Cmake
+            if: github.ref == 'refs/heads/main'
             run: |
               make docker-cmake-release
-
+    
           - name: Build
+            if: github.ref == 'refs/heads/main'
             run: make docker-build-release
-
+    
           - name: Run tests
+            if: github.ref == 'refs/heads/main'
             run: make docker-test-release
 
