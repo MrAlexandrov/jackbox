@@ -6,10 +6,6 @@ name: Docker build
       - cron: '30 5 * * 1'  # Every Monday at 5:30
     pull_request:
     push:
-        branches:
-          - master
-          - develop
-          - feature/**
 
 jobs:
     tests:
