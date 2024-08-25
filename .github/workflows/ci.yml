@@ -27,6 +27,13 @@ jobs:
         runs-on: self-hosted
 
         steps:
+          - name: Set up environment variables
+            run: |
+              echo "PG_HOST=${{ vars.PG_HOST }}" >> .env
+              echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
+              echo "POSTGRES_USER=${{ vars.POSTGRES_USER }}" >> .env
+              echo "POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}" >> .env
+
           - uses: actions/checkout@v2
             with:
                 submodules: true
@@ -49,7 +56,7 @@ jobs:
 
           - name: Setup ccache
             run: |
-                ccache -M 2.0GB
+                ccache -M 4.0GB
                 ccache -s
 
           - name: Run ${{matrix.make}}
