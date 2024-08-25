@@ -8,6 +8,10 @@ name: CI
 
 env:
     UBSAN_OPTIONS: print_stacktrace=1
+    PG_HOST: ${{ secrets.PG_HOST }}
+    POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+    POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+    POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
 
 jobs:
     posix:
@@ -27,12 +31,12 @@ jobs:
         runs-on: self-hosted
 
         steps:
-          - name: Set up environment variables
+          - name: Создание .env файла
             run: |
-              echo "PG_HOST=${{ vars.PG_HOST }}" >> .env
-              echo "POSTGRES_DB=${{ vars.POSTGRES_DB }}" >> .env
-              echo "POSTGRES_USER=${{ vars.POSTGRES_USER }}" >> .env
-              echo "POSTGRES_PASSWORD=${{ vars.POSTGRES_PASSWORD }}" >> .env
+              echo "PG_HOST=${{ secrets.PG_HOST }}" >> .env
+              echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
+              echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
+              echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
 
           - uses: actions/checkout@v2
             with:
