@@ -29,20 +29,20 @@ build_release/CMakeCache.txt: cmake-release
 # Build using cmake
 .PHONY: build-debug build-release
 build-debug build-release: build-%: build_%/CMakeCache.txt
-	cmake --build build_$* -j $(NPROCS) --target jackbox
+	cmake --build build_$* -j $(NPROCS) --target game
 
 # Test
 .PHONY: test-debug test-release
 test-debug test-release: test-%: build-%
-	cmake --build build_$* -j $(NPROCS) --target jackbox_unittest
-	cmake --build build_$* -j $(NPROCS) --target jackbox_benchmark
+	cmake --build build_$* -j $(NPROCS) --target game_unittest
+	cmake --build build_$* -j $(NPROCS) --target game_benchmark
 	cd build_$* && ((test -t 1 && GTEST_COLOR=1 PYTEST_ADDOPTS="--color=yes" ctest -V) || ctest -V)
 	pycodestyle tests
 
 # Start the service (via testsuite service runner)
 .PHONY: service-start-debug service-start-release
 service-start-debug service-start-release: service-start-%: build-%
-	cmake --build build_$* -v --target start-jackbox
+	cmake --build build_$* -v --target start-game
 
 # Cleanup data
 .PHONY: clean-debug clean-release
@@ -58,7 +58,7 @@ dist-clean:
 # Install
 .PHONY: install-debug install-release
 install-debug install-release: install-%: build-%
-	cmake --install build_$* -v --component jackbox
+	cmake --install build_$* -v --component game
 
 .PHONY: install
 install: install-release
@@ -75,19 +75,19 @@ export DB_CONNECTION := postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@servi
 # Internal hidden targets that are used only in docker environment
 --in-docker-start-debug --in-docker-start-release: --in-docker-start-%: install-%
 	psql ${DB_CONNECTION} -f ./postgresql/data/initial_data.sql
-	/home/user/.local/bin/jackbox \
-		--config /home/user/.local/etc/jackbox/static_config.yaml \
-		--config_vars /home/user/.local/etc/jackbox/config_vars.docker.yaml
+	/home/user/.local/bin/game \
+		--config /home/user/.local/etc/game/static_config.yaml \
+		--config_vars /home/user/.local/etc/game/config_vars.docker.yaml
 
 # Build and run service in docker environment
 .PHONY: docker-start-service-debug docker-start-service-release
 docker-start-service-debug docker-start-service-release: docker-start-service-%:
-	$(DOCKER_COMPOSE) run -p 8080:8080 -p 8081:8081 --rm jackbox-container make -- --in-docker-start-$*
+	$(DOCKER_COMPOSE) run -p 8080:8080 -p 8081:8081 --rm game-container make -- --in-docker-start-$*
 
 # Start targets makefile in docker environment
 .PHONY: docker-cmake-debug docker-build-debug docker-test-debug docker-clean-debug docker-install-debug docker-cmake-release docker-build-release docker-test-release docker-clean-release docker-install-release
 docker-cmake-debug docker-build-debug docker-test-debug docker-clean-debug docker-install-debug docker-cmake-release docker-build-release docker-test-release docker-clean-release docker-install-release: docker-%:
-	$(DOCKER_COMPOSE) run --rm jackbox-container make $*
+	$(DOCKER_COMPOSE) run --rm game-container make $*
 
 # Stop docker container and remove PG data
 .PHONY: docker-clean-data

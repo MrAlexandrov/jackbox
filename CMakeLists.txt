@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(jackbox CXX)
+project(game CXX)
 
 set(USERVER_FEATURE_PATCH_LIBPQ OFF)
 
